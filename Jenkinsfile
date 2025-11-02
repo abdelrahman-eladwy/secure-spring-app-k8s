@@ -213,7 +213,10 @@ pipeline{
         steps {
             withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'jenkins-user', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                 script {
-                    sh 'docker push 786244777321.dkr.ecr.eu-central-1.amazonaws.com/secure-spring-app:latest'
+                    sh '''
+                    docker tag secure-spring-app:latest 786244777321.dkr.ecr.eu-central-1.amazonaws.com/jenkins:latest
+                    docker push 786244777321.dkr.ecr.eu-central-1.amazonaws.com/jenkins:latest
+                    '''
                 }
             }
         }
@@ -221,5 +224,5 @@ pipeline{
     }
 
 }
-    
+
 
