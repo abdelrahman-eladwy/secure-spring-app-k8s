@@ -3,7 +3,7 @@ pipeline{
     environment{
         PATH = "/usr/local/bin:$PATH"
         GITHUB_URL = "https://github.com/abdelrahman-eladwy/Java-app.git"
-        CLIENT_AUTH_TOKEN = 'CHANGME123!'
+        CLIENT_AUTH_TOKEN = 'CHANGME321!'
         SSC_USERNAME = 'admin'
         SSC_PASSWORD = 'Jpia331##'
         SSC_URL = "http://34.1.41.80:8080/ssc"
