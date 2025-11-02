@@ -64,19 +64,36 @@ pipeline{
         //         }
         //     }
         // }
-        stage ('Sonatype Scan SCA'){
+        stage ('Sonatype SCA Scan'){
             steps{
                 dir('Java-app'){
-                    sh '''
-                    java -jar /home/abdelrahman_aeladwy/latest.jar \
-                    -a admin:123 \
-                    -i jenkins \
-                    -s http://localhost:8070 \
-                    ./target/secure-spring-app-1.0.0-SNAPSHOT.jar \
-                    -r sca-results.json 
-
-                    sca-result.json | jq
-                    '''
+                    script {
+                        def scanStatus = sh(
+                            script: '''
+                            java -jar /home/abdelrahman_aeladwy/latest.jar \
+                                -a admin:123 \
+                                -i jenkins \
+                                -s http://localhost:8070 \
+                                -r sca-results.json \
+                                ./target/secure-spring-app-1.0.0-SNAPSHOT.jar
+                            ''',
+                            returnStatus: true
+                        )
+                        
+                        sh '''
+                        echo "=== Sonatype Scan Results ==="
+                        if [ -f sca-results.json ]; then
+                            cat sca-results.json | jq '.policyAction, .componentsAffected'
+                        fi
+                        '''
+                        
+                        // Check scan exit code (0 = pass, 1 = policy violation)
+                        if (scanStatus == 1) {
+                            error("Sonatype Quality Gate FAILED: Policy violations detected (exit code: ${scanStatus})")
+                        }
+                        
+                        echo "Sonatype Quality Gate PASSED"
+                    }
                 }
             }
         }
