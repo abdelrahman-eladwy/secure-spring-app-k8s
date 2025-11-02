@@ -7,7 +7,10 @@ pipeline{
     stages{
         stage ('SCM'){
             steps{
-                sh 'git clone ${GITHUB_URL}'
+                sh '''
+                rm -rf Java-app
+                git clone ${GITHUB_URL}
+                '''
             }
         }
         stage ('BUILD'){
