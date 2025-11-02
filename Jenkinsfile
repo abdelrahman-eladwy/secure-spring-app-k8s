@@ -3,10 +3,9 @@ pipeline{
     stages{
         stage ('SCM'){
             steps{
-             sh '''
-             
-             '''
+                sh 'echo eladwy'
             }
         }
     }
 }
+
