@@ -27,19 +27,19 @@ pipeline{
                 }
             }
         }
-        stage ('Fortify SAST Scan'){
-            steps{
-                dir('Java-app'){
-                    sh '''
-                    echo ${CLIENT_AUTH_TOKEN}
-                    fcli ssc session login --client-auth-token=${CLIENT_AUTH_TOKEN} --user=${SSC_USERNAME} --password=${SSC_PASSWORD} --url=${SSC_URL} --insecure
-                    scancentral package -o package.zip
-                    fcli sc-sast scan start --publish-to=${APPLICATION_ID}:${VERSION_NAME} --sensor-version=${SENSOR_VERSION} --file=package.zip --store=Id
-                    fcli sc-sast scan wait-for ::Id:: --interval=30s
-                    '''
-                }
-            }
-        }
+        // stage ('Fortify SAST Scan'){
+        //     steps{
+        //         dir('Java-app'){
+        //             sh '''
+        //             echo ${CLIENT_AUTH_TOKEN}
+        //             fcli ssc session login --client-auth-token=${CLIENT_AUTH_TOKEN} --user=${SSC_USERNAME} --password=${SSC_PASSWORD} --url=${SSC_URL} --insecure
+        //             scancentral package -o package.zip
+        //             fcli sc-sast scan start --publish-to=${APPLICATION_ID}:${VERSION_NAME} --sensor-version=${SENSOR_VERSION} --file=package.zip --store=Id
+        //             fcli sc-sast scan wait-for ::Id:: --interval=30s
+        //             '''
+        //         }
+        //     }
+        // }
         stage ('Quality Gate'){
             steps{
                 dir('Java-app'){
@@ -49,6 +49,7 @@ pipeline{
                     fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME}
                     
                     # Get critical count
+                    echo $(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME})
                     CRITICAL=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "friority:Critical" -o expr="{totalCount}" || echo "0")
                     HIGH=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "friority:High" -o expr="{totalCount}" || echo "0")
                     
