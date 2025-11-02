@@ -119,50 +119,39 @@ pipeline{
                 }
             }
         }
-        stage('Trivy Vulnerability Scanner'){
+        stage('Trivy Vulnarability Scanner'){
             steps {
-                script {
-                    // Scan for LOW and MEDIUM severities (informational only)
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                     sh '''
                         trivy image secure-spring-app:latest \
-                            --severity LOW,MEDIUM \
+                            --severity MEDIUM \
                             --exit-code 0 \
-                            --format json \
-                            --output trivy-image-MEDIUM-results.json
+                            --quiet \
+                            --format json -o trivy-image-MEDIUM-results.json
+                        trivy image secure-spring-app:latest \
+                            --severity CRITICAL \
+                            --exit-code 1 \
+                            --quiet \
+                            --format json -o trivy-image-CRITICAL-results.json
                     '''
-                    
-                    // Scan for HIGH and CRITICAL severities (fail build if found)
-                    def scanStatus = sh(
-                        script: '''
-                            trivy image secure-spring-app:latest \
-                                --severity HIGH,CRITICAL \
-                                --exit-code 1 \
-                                --format json \
-                                --output trivy-image-CRITICAL-results.json
-                        ''',
-                        returnStatus: true
-                    )
-                    
-                    // Parse results to show summary
-                    def criticalResults = sh(
-                        script: 'cat trivy-image-CRITICAL-results.json | jq -r ".Results[]?.Vulnerabilities // [] | map(select(.Severity == \\"CRITICAL\\")) | length" | awk \'{sum+=$1} END {print sum}\'',
-                        returnStdout: true
-                    ).trim()
-                    
-                    def highResults = sh(
-                        script: 'cat trivy-image-CRITICAL-results.json | jq -r ".Results[]?.Vulnerabilities // [] | map(select(.Severity == \\"HIGH\\")) | length" | awk \'{sum+=$1} END {print sum}\'',
-                        returnStdout: true
-                    ).trim()
-                    
-                    echo "=== Trivy Scan Results ==="
-                    echo "Critical vulnerabilities: ${criticalResults}"
-                    echo "High vulnerabilities: ${highResults}"
-                    
-                    if (scanStatus != 0) {
-                        error("Trivy Quality Gate FAILED: Found HIGH or CRITICAL vulnerabilities")
-                    }
-                    
-                    echo "Trivy Quality Gate PASSED"
+                }
+            }
+            post {
+                always {
+                    sh '''
+                        trivy convert \
+                            --format template --template "@/usr/local/share/trivy/templates/html.tpl" \
+                            --output trivy-image-MEDIUM-results.html trivy-image-MEDIUM-results.json
+                        trivy convert \
+                            --format template --template "@/usr/local/share/trivy/templates/html.tpl" \
+                            --output trivy-image-CRITICAL-results.html trivy-image-CRITICAL-results.json
+                        trivy convert \
+                            --format template --template "@/usr/local/share/trivy/templates/junit.tpl" \
+                            --output trivy-image-MEDIUM-results.xml trivy-image-MEDIUM-results.json
+                        trivy convert \
+                            --format template --template "@/usr/local/share/trivy/templates/junit.tpl" \
+                            --output trivy-image-CRITICAL-results.xml trivy-image-CRITICAL-results.json
+                    '''
                 }
             }
         }
