@@ -122,6 +122,7 @@ pipeline{
         stage('Trivy Vulnarability Scanner'){
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    dir('Java-app') {
                     sh '''
                         trivy image secure-spring-app:latest \
                             --severity LOW,MEDIUM \
@@ -135,6 +136,7 @@ pipeline{
                             --format json -o trivy-image-CRITICAL-results.json
                     '''
                 }
+            }
             }
             post {
                 always {
