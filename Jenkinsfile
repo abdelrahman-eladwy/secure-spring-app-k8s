@@ -119,42 +119,61 @@ pipeline{
                 }
             }
         }
-        stage('Trivy Vulnarability Scanner'){
-            steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh '''
-                        trivy image secure-spring-app:latest \
-                            --severity MEDIUM \
-                            --exit-code 0 \
-                            --quiet \
-                            --format json -o trivy-image-MEDIUM-results.json
-                        trivy image secure-spring-app:latest \
-                            --severity CRITICAL \
-                            --exit-code 1 \
-                            --quiet \
-                            --format json -o trivy-image-CRITICAL-results.json
-                    '''
-                }
-            }
-            post {
-                always {
-                    sh '''
-                        trivy convert \
-                            --format template --template "@/usr/local/share/trivy/templates/html.tpl" \
-                            --output trivy-image-MEDIUM-results.html trivy-image-MEDIUM-results.json
-                        trivy convert \
-                            --format template --template "@/usr/local/share/trivy/templates/html.tpl" \
-                            --output trivy-image-CRITICAL-results.html trivy-image-CRITICAL-results.json
-                        trivy convert \
-                            --format template --template "@/usr/local/share/trivy/templates/junit.tpl" \
-                            --output trivy-image-MEDIUM-results.xml trivy-image-MEDIUM-results.json
-                        trivy convert \
-                            --format template --template "@/usr/local/share/trivy/templates/junit.tpl" \
-                            --output trivy-image-CRITICAL-results.xml trivy-image-CRITICAL-results.json
-                    '''
-                }
-            }
+        stage('Trivy Vulnerability Scanner') {
+    steps {
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+            sh '''
+                # Scan for MEDIUM vulnerabilities
+                trivy image \
+                    --severity MEDIUM \
+                    --exit-code 0 \
+                    --quiet \
+                    --format json \
+                    --output trivy-image-MEDIUM-results.json \
+                    secure-spring-app:latest
+
+                # Scan for CRITICAL vulnerabilities
+                trivy image \
+                    --severity CRITICAL \
+                    --exit-code 1 \
+                    --quiet \
+                    --format json \
+                    --output trivy-image-CRITICAL-results.json \
+                    secure-spring-app:latest
+            '''
         }
+    }
+    post {
+        always {
+            sh '''
+                trivy convert \
+                    --format template \
+                    --template "@/usr/local/share/trivy/templates/html.tpl" \
+                    --output trivy-image-MEDIUM-results.html \
+                    trivy-image-MEDIUM-results.json
+
+                trivy convert \
+                    --format template \
+                    --template "@/usr/local/share/trivy/templates/html.tpl" \
+                    --output trivy-image-CRITICAL-results.html \
+                    trivy-image-CRITICAL-results.json
+
+                trivy convert \
+                    --format template \
+                    --template "@/usr/local/share/trivy/templates/junit.tpl" \
+                    --output trivy-image-MEDIUM-results.xml \
+                    trivy-image-MEDIUM-results.json
+
+                trivy convert \
+                    --format template \
+                    --template "@/usr/local/share/trivy/templates/junit.tpl" \
+                    --output trivy-image-CRITICAL-results.xml \
+                    trivy-image-CRITICAL-results.json
+            '''
+        }
+    }
+}
+
         // stage ('Anchor Grype Scan'){
         //     steps{
         //         dir('Java-app'){
