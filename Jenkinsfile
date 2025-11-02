@@ -68,7 +68,7 @@ pipeline{
             steps{
                 dir('Java-app'){
                     sh '''
-                    java -jar nexus-iq-cli*.jar \
+                    java -jar /home/abdelrahman_aeladwy/latest.jar \
                     -a admin:123 \
                     -i jenkins \
                     -s http://localhost:8070 \
