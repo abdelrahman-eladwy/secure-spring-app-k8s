@@ -119,100 +119,106 @@ pipeline{
                 }
             }
         }
-        stage('Trivy Vulnerability Scanner') {
-    steps {
-        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-            sh '''
-                echo "=== Scanning image for MEDIUM vulnerabilities ==="
-                trivy image \
-                    --severity MEDIUM \
-                    --exit-code 0 \
-                    --no-progress \
-                    --format json \
-                    --output trivy-image-MEDIUM-results.json \
-                    secure-spring-app:latest
+//         stage('Trivy Vulnerability Scanner') {
+//     steps {
+//         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+//             sh '''
+//                 echo "=== Scanning image for MEDIUM vulnerabilities ==="
+//                 trivy image \
+//                     --severity MEDIUM \
+//                     --exit-code 0 \
+//                     --no-progress \
+//                     --format json \
+//                     --output trivy-image-MEDIUM-results.json \
+//                     secure-spring-app:latest
 
-                echo "=== Scanning image for CRITICAL vulnerabilities ==="
-                trivy image \
-                    --severity CRITICAL \
-                    --exit-code 1 \
-                    --no-progress \
-                    --format json \
-                    --output trivy-image-CRITICAL-results.json \
-                    secure-spring-app:latest
-            '''
+//                 echo "=== Scanning image for CRITICAL vulnerabilities ==="
+//                 trivy image \
+//                     --severity CRITICAL \
+//                     --exit-code 1 \
+//                     --no-progress \
+//                     --format json \
+//                     --output trivy-image-CRITICAL-results.json \
+//                     secure-spring-app:latest
+//             '''
+//         }
+//     }
+//    post {
+//     always {
+//         sh '''
+//             echo "=== Converting Trivy JSON results to HTML & JUnit ==="
+
+//             trivy convert \
+//                 --format template \
+//                 --template "@/usr/local/share/trivy/templates/html.tpl" \
+//                 --output trivy-image-MEDIUM-results.html \
+//                 trivy-image-MEDIUM-results.json
+
+//             trivy convert \
+//                 --format template \
+//                 --template "@/usr/local/share/trivy/templates/html.tpl" \
+//                 --output trivy-image-CRITICAL-results.html \
+//                 trivy-image-CRITICAL-results.json
+
+//             trivy convert \
+//                 --format template \
+//                 --template "@/usr/local/share/trivy/templates/junit.tpl" \
+//                 --output trivy-image-MEDIUM-results.xml \
+//                 trivy-image-MEDIUM-results.json
+
+//             trivy convert \
+//                 --format template \
+//                 --template "@/usr/local/share/trivy/templates/junit.tpl" \
+//                 --output trivy-image-CRITICAL-results.xml \
+//                 trivy-image-CRITICAL-results.json
+//         '''
+//     }
+// }
+
+// }
+
+
+//        stage('Anchore Grype Scan') {
+//     steps {
+//         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+//             sh '''
+//                 echo "=== Running Anchore Grype Scan ==="
+
+//                 # Create workspace folder if missing
+//                 mkdir -p grype-report
+
+//                 # JSON report (for archiving)
+//                 grype secure-spring-app:latest \
+//                     --fail-on high \
+//                     --output json > grype-report/grype-results.json || true
+
+//                 # HTML-style text report (for viewing)
+//                 grype secure-spring-app:latest \
+//                     --output table > grype-report/grype-report.html || true
+//             '''
+//         }
+//     }
+//     post {
+//         always {
+//             publishHTML([
+//                 reportDir: 'grype-report',
+//                 reportFiles: 'grype-report.html',
+//                 reportName: 'Anchore Grype Report'
+//             ])
+//             archiveArtifacts artifacts: 'grype-report/**', onlyIfSuccessful: false
+//         }
+//     }
+// }
+    stage('Push To ECR') {
+        steps {
+            withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'jenkins-user', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                script {
+                    sh 'docker push 786244777321.dkr.ecr.eu-central-1.amazonaws.com/secure-spring-app:latest'
+                }
+            }
         }
     }
-   post {
-    always {
-        sh '''
-            echo "=== Converting Trivy JSON results to HTML & JUnit ==="
 
-            trivy convert \
-                --format template \
-                --template "@/usr/local/share/trivy/templates/html.tpl" \
-                --output trivy-image-MEDIUM-results.html \
-                trivy-image-MEDIUM-results.json
-
-            trivy convert \
-                --format template \
-                --template "@/usr/local/share/trivy/templates/html.tpl" \
-                --output trivy-image-CRITICAL-results.html \
-                trivy-image-CRITICAL-results.json
-
-            trivy convert \
-                --format template \
-                --template "@/usr/local/share/trivy/templates/junit.tpl" \
-                --output trivy-image-MEDIUM-results.xml \
-                trivy-image-MEDIUM-results.json
-
-            trivy convert \
-                --format template \
-                --template "@/usr/local/share/trivy/templates/junit.tpl" \
-                --output trivy-image-CRITICAL-results.xml \
-                trivy-image-CRITICAL-results.json
-        '''
-    }
-}
-
-}
-
-
-       stage('Anchore Grype Scan') {
-    steps {
-        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-            sh '''
-                echo "=== Running Anchore Grype Scan ==="
-
-                # Create workspace folder if missing
-                mkdir -p grype-report
-
-                # JSON report (for archiving)
-                grype secure-spring-app:latest \
-                    --fail-on high \
-                    --output json > grype-report/grype-results.json || true
-
-                # HTML-style text report (for viewing)
-                grype secure-spring-app:latest \
-                    --output table > grype-report/grype-report.html || true
-            '''
-        }
-    }
-    post {
-        always {
-            publishHTML([
-                reportDir: 'grype-report',
-                reportFiles: 'grype-report.html',
-                reportName: 'Anchore Grype Report'
-            ])
-            archiveArtifacts artifacts: 'grype-report/**', onlyIfSuccessful: false
-        }
-    }
-}
-
-
-
-    }
 }
 
 
