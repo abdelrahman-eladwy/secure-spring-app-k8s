@@ -64,51 +64,70 @@ pipeline{
         //         }
         //     }
         // }
-        stage ('Sonatype SCA Scan'){
+        // stage ('Sonatype SCA Scan'){
+        //     steps{
+        //         dir('Java-app'){
+        //             script {
+        //                 // Capture both output and status from Sonatype scan
+        //                 def scanOutput = sh(
+        //                     script: '''
+        //                     java -jar /home/abdelrahman_aeladwy/latest.jar \
+        //                         -a admin:123 \
+        //                         -i jenkins \
+        //                         -s http://localhost:8070 \
+        //                         -r sca-results.json \
+        //                         ./target/secure-spring-app-1.0.0-SNAPSHOT.jar 2>&1
+        //                     ''',
+        //                     returnStdout: true
+        //                 )
+                        
+        //                 echo "=== Sonatype Scan Output ==="
+        //                 echo scanOutput
+                        
+        //                 // Parse critical and severe counts from console output
+        //                 def criticalMatch = (scanOutput =~ /Number of components affected:\s+(\d+)\s+critical/)
+        //                 def severeMatch = (scanOutput =~ /Number of components affected:\s+\d+\s+critical,\s+(\d+)\s+severe/)
+                        
+        //                 def criticalCount = criticalMatch ? criticalMatch[0][1].toInteger() : 0
+        //                 def severeCount = severeMatch ? severeMatch[0][1].toInteger() : 0
+                        
+        //                 echo "=== Quality Gate Check ==="
+        //                 echo "Critical Components: ${criticalCount}"
+        //                 echo "Severe Components: ${severeCount}"
+                        
+        //                 // Fail if critical vulnerabilities found (threshold: 0)
+        //                 if (criticalCount > 0) {
+        //                     error("Sonatype Quality Gate FAILED: Found ${criticalCount} critical components (threshold: 0)")
+        //                 }
+                        
+        //                 // Optional: Also fail on severe (adjust threshold as needed)
+        //                 if (severeCount > 10) {
+        //                     error("Sonatype Quality Gate FAILED: Found ${severeCount} severe components (threshold: 10)")
+        //                 }
+                        
+        //                 echo "Sonatype Quality Gate PASSED"
+        //             }
+        //         }
+        //     }
+        // }
+        stage ('Build Docker Image'){
             steps{
                 dir('Java-app'){
-                    script {
-                        // Capture both output and status from Sonatype scan
-                        def scanOutput = sh(
-                            script: '''
-                            java -jar /home/abdelrahman_aeladwy/latest.jar \
-                                -a admin:123 \
-                                -i jenkins \
-                                -s http://localhost:8070 \
-                                -r sca-results.json \
-                                ./target/secure-spring-app-1.0.0-SNAPSHOT.jar 2>&1
-                            ''',
-                            returnStdout: true
-                        )
-                        
-                        echo "=== Sonatype Scan Output ==="
-                        echo scanOutput
-                        
-                        // Parse critical and severe counts from console output
-                        def criticalMatch = (scanOutput =~ /Number of components affected:\s+(\d+)\s+critical/)
-                        def severeMatch = (scanOutput =~ /Number of components affected:\s+\d+\s+critical,\s+(\d+)\s+severe/)
-                        
-                        def criticalCount = criticalMatch ? criticalMatch[0][1].toInteger() : 0
-                        def severeCount = severeMatch ? severeMatch[0][1].toInteger() : 0
-                        
-                        echo "=== Quality Gate Check ==="
-                        echo "Critical Components: ${criticalCount}"
-                        echo "Severe Components: ${severeCount}"
-                        
-                        // Fail if critical vulnerabilities found (threshold: 0)
-                        if (criticalCount > 0) {
-                            error("Sonatype Quality Gate FAILED: Found ${criticalCount} critical components (threshold: 0)")
-                        }
-                        
-                        // Optional: Also fail on severe (adjust threshold as needed)
-                        if (severeCount > 10) {
-                            error("Sonatype Quality Gate FAILED: Found ${severeCount} severe components (threshold: 10)")
-                        }
-                        
-                        echo "Sonatype Quality Gate PASSED"
-                    }
+                    sh '''
+                    docker build -t secure-spring-app:latest .
+                    '''
                 }
             }
+        }
+        stage ('Trivy Scan'){
+            sh '''
+            trivy image --severity CRITICAL,HIGH secure-spring-app:latest
+            '''
+        }
+        stage ('Anchor Grype Scan'){
+            sh '''
+            grype secure-spring-app:latest --fail-on high
+            '''
         }
     }
 }
