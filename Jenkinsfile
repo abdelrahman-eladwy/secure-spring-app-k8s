@@ -73,7 +73,9 @@ pipeline{
                     -i jenkins \
                     -s http://localhost:8070 \
                     ./target/secure-spring-app-1.0.0-SNAPSHOT.jar \
-                    -r sca-results.json
+                    -r sca-results.json 
+
+                    sca-result.json | jq
                     '''
                 }
             }
