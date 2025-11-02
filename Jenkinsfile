@@ -33,7 +33,7 @@ pipeline{
                     echo ${CLIENT_AUTH_TOKEN}
                     fcli ssc session login --client-auth-token=${CLIENT_AUTH_TOKEN} --user=${SSC_USERNAME} --password=${SSC_PASSWORD} --url=${SSC_URL} --insecure
                     scancentral package -o package.zip
-                    fcli sc-sast scan start --publish-to=${APPLICATION_ID} --sensor-version=${SENSOR_VERSION} --file=package.zip --store=Id
+                    fcli sc-sast scan start --publish-to=${APPLICATION_ID}:${SENSOR_VERSION} --sensor-version=${SENSOR_VERSION} --file=package.zip --store=Id
                     fcli sc-sast scan wait-for ::Id:: --interval=30s
 
                     '''
