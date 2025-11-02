@@ -183,27 +183,33 @@ pipeline{
         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
             sh '''
                 echo "=== Running Anchore Grype Scan ==="
+
+                # Create workspace folder if missing
+                mkdir -p grype-report
+
+                # JSON report (for archiving)
                 grype secure-spring-app:latest \
                     --fail-on high \
-                    --output json > grype-results.json
+                    --output json > grype-report/grype-results.json || true
 
-                # Optional pretty HTML version for Jenkins
+                # HTML-style text report (for viewing)
                 grype secure-spring-app:latest \
-                    --output table > grype-report.html
+                    --output table > grype-report/grype-report.html || true
             '''
         }
     }
     post {
         always {
             publishHTML([
-                reportDir: '',
+                reportDir: 'grype-report',
                 reportFiles: 'grype-report.html',
                 reportName: 'Anchore Grype Report'
             ])
-            archiveArtifacts artifacts: 'grype-results.json,grype-report.html', onlyIfSuccessful: false
+            archiveArtifacts artifacts: 'grype-report/**', onlyIfSuccessful: false
         }
     }
 }
+
 
 
     }
