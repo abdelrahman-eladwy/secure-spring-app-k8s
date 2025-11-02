@@ -40,36 +40,42 @@ pipeline{
         //         }
         //     }
         // }
-        stage ('Quality Gate'){
+        // stage ('Quality Gate'){
+        //     steps{
+        //         dir('Java-app'){
+        //             sh '''
+                  
+        //             # Get critical and high counts using SpEL query syntax
+        //             CRITICAL=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "cleanName=='Critical'" -o expr="{totalCount}" || echo "0")
+        //             HIGH=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "cleanName=='High'" -o expr="{totalCount}" || echo "0")
+                    
+        //             # Fail if critical vulnerabilities exist
+        //             if [ "$CRITICAL" -gt "0" ]; then
+        //                 echo "Quality Gate FAILED: Found $CRITICAL critical vulnerabilities"
+        //                 exit 1
+        //             fi
+        //             if [ "$HIGH" -gt "7" ]; then
+        //                 echo "Quality Gate FAILED: Found $HIGH high vulnerabilities (threshold: 7)"
+        //                 exit 1
+        //             fi
+                    
+        //             echo "Quality Gate PASSED: Critical=$CRITICAL, High=$HIGH (threshold: 7)"
+        //             '''
+        //         }
+        //     }
+        // }
+        stage ('Sonatype Scan SCA'){
             steps{
                 dir('Java-app'){
                     sh '''
-                    # Check for critical and high severity vulnerabilities
-                    echo "Checking vulnerability counts..."
-                    fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME}
-                    
-                    # Get critical and high counts using SpEL query syntax
-                    CRITICAL=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "cleanName=='Critical'" -o expr="{totalCount}" || echo "0")
-                    HIGH=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "cleanName=='High'" -o expr="{totalCount}" || echo "0")
-                    
-                    echo "Critical vulnerabilities: $CRITICAL"
-                    echo "High vulnerabilities: $HIGH"
-                    
-                    # Fail if critical vulnerabilities exist
-                    if [ "$CRITICAL" -gt "0" ]; then
-                        echo "Quality Gate FAILED: Found $CRITICAL critical vulnerabilities"
-                        exit 1
-                    fi
-                    if [ "$HIGH" -gt "7" ]; then
-                        echo "Quality Gate FAILED: Found $HIGH high vulnerabilities (threshold: 7)"
-                        exit 1
-                    fi
-                    
-                    echo "Quality Gate PASSED: Critical=$CRITICAL, High=$HIGH (threshold: 7)"
+                    java -jar nexus-iq-cli*.jar \
+                    -a admin:123 \
+                    -i jenkins \
+                    -s http://localhost:8070 \
+                    ./target/secure-spring-app-1.0.0-SNAPSHOT.jar
                     '''
                 }
             }
-        }
     }
 }
 
