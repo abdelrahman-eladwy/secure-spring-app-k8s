@@ -36,7 +36,32 @@ pipeline{
                     scancentral package -o package.zip
                     fcli sc-sast scan start --publish-to=${APPLICATION_ID}:${VERSION_NAME} --sensor-version=${SENSOR_VERSION} --file=package.zip --store=Id
                     fcli sc-sast scan wait-for ::Id:: --interval=30s
-
+                    '''
+                }
+            }
+        }
+        stage ('Quality Gate'){
+            steps{
+                dir('Java-app'){
+                    sh '''
+                    # Check for critical and high severity vulnerabilities
+                    echo "Checking vulnerability counts..."
+                    fcli ssc appversion-vuln count --av ${APPLICATION_ID}:${VERSION_NAME}
+                    
+                    # Get critical count
+                    CRITICAL=$(fcli ssc appversion-vuln count --av ${APPLICATION_ID}:${VERSION_NAME} -q "friority:Critical" -o expr="{totalCount}" || echo "0")
+                    HIGH=$(fcli ssc appversion-vuln count --av ${APPLICATION_ID}:${VERSION_NAME} -q "friority:High" -o expr="{totalCount}" || echo "0")
+                    
+                    echo "Critical vulnerabilities: $CRITICAL"
+                    echo "High vulnerabilities: $HIGH"
+                    
+                    # Fail if critical vulnerabilities exist
+                    if [ "$CRITICAL" -gt "0" ]; then
+                        echo "Quality Gate FAILED: Found $CRITICAL critical vulnerabilities"
+                        exit 1
+                    fi
+                    
+                    echo "Quality Gate PASSED"
                     '''
                 }
             }
