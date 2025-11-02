@@ -178,15 +178,27 @@ pipeline{
 }
 
 
-        // stage ('Anchor Grype Scan'){
-        //     steps{
-        //         dir('Java-app'){
-        //             sh '''
-        //             grype secure-spring-app:latest --fail-on high
-        //             '''
-        //         }
-        //     }
-        // }
+        stage('Anchore Grype Scan') {
+    steps {
+        sh '''
+            echo "=== Running Anchore Grype Scan ==="
+            grype secure-spring-app:latest \
+                --fail-on high \
+                --output json > grype-results.json
+        '''
+    }
+    post {
+    always {
+        publishHTML([
+            reportDir: '',
+            reportFiles: 'grype-report.html',
+            reportName: 'Anchore Grype Report'
+        ])
+    }
+}
+
+}
+
     }
 }
 
