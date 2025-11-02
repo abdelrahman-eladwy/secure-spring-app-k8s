@@ -8,7 +8,7 @@ pipeline{
         SSC_PASSWORD = 'Jpia331##'
         SSC_URL = "http://34.1.41.80:8080/ssc"
         APPLICATION_ID = "jenkins"
-        SENSOR_VERSION = "jenkins"
+        SENSOR_VERSION = "25.2"
     }
     stages{
         stage ('SCM'){
