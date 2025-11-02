@@ -1,7 +1,7 @@
 pipeline{
     agent any
     environment{
-        PATH = "/usr/local/bin:$PATH"
+        PATH = "/home/abdelrahman_aeladwy/Fortify/OpenText_SAST_Fortify_25.2.0/bin:/usr/local/bin:$PATH"
         GITHUB_URL = "https://github.com/abdelrahman-eladwy/Java-app.git"
         CLIENT_AUTH_TOKEN = 'CHANGEME321!'
         SSC_USERNAME = 'admin'
