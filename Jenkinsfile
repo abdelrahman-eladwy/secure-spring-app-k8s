@@ -48,10 +48,9 @@ pipeline{
                     echo "Checking vulnerability counts..."
                     fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME}
                     
-                    # Get critical count
-                    echo $(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME})
-                    CRITICAL=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "friority:Critical" -o expr="{totalCount}" || echo "0")
-                    HIGH=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "friority:High" -o expr="{totalCount}" || echo "0")
+                    # Get critical and high counts using SpEL query syntax
+                    CRITICAL=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "cleanName=='Critical'" -o expr="{totalCount}" || echo "0")
+                    HIGH=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "cleanName=='High'" -o expr="{totalCount}" || echo "0")
                     
                     echo "Critical vulnerabilities: $CRITICAL"
                     echo "High vulnerabilities: $HIGH"
@@ -62,11 +61,11 @@ pipeline{
                         exit 1
                     fi
                     if [ "$HIGH" -gt "7" ]; then
-                        echo "Quality Gate FAILED: Found $HIGH high vulnerabilities"
+                        echo "Quality Gate FAILED: Found $HIGH high vulnerabilities (threshold: 7)"
                         exit 1
                     fi
                     
-                    echo "Quality Gate PASSED"
+                    echo "Quality Gate PASSED: Critical=$CRITICAL, High=$HIGH (threshold: 7)"
                     '''
                 }
             }
