@@ -68,55 +68,44 @@ pipeline{
             steps{
                 dir('Java-app'){
                     script {
-                        def scanStatus = sh(
+                        // Capture both output and status from Sonatype scan
+                        def scanOutput = sh(
                             script: '''
                             java -jar /home/abdelrahman_aeladwy/latest.jar \
                                 -a admin:123 \
                                 -i jenkins \
                                 -s http://localhost:8070 \
                                 -r sca-results.json \
-                                ./target/secure-spring-app-1.0.0-SNAPSHOT.jar
-                            ''',
-                            returnStatus: true
-                        )
-                        def scanOutput = sh(
-                            script: '''
-                            if [ -f sca-results.json ]; then
-                                echo "=== Sonatype Scan Results ==="
-                                echo "Full JSON structure:"
-                                cat sca-results.json | jq '.'
-                                echo ""
-                                echo "Policy Action: $(jq -r '.policyAction' sca-results.json)"
-                                
-                                # Try different JSON paths to find component counts
-                                CRITICAL=$(jq -r '.componentsAffected.critical // .components.critical // 0' sca-results.json)
-                                SEVERE=$(jq -r '.componentsAffected.severe // .components.severe // 0' sca-results.json)
-                                
-                                echo "Critical Components: $CRITICAL"
-                                echo "Severe Components: $SEVERE"
-                                echo "$CRITICAL"
-                            else
-                                echo "0"
-                            fi
+                                ./target/secure-spring-app-1.0.0-SNAPSHOT.jar 2>&1
                             ''',
                             returnStdout: true
-                        ).trim()
+                        )
                         
-                        def criticalCount = scanOutput.split('\n')[-1].toInteger()
+                        echo "=== Sonatype Scan Output ==="
+                        echo scanOutput
                         
-                        echo "Critical components found: ${criticalCount}"
+                        // Parse critical and severe counts from console output
+                        def criticalMatch = (scanOutput =~ /Number of components affected:\s+(\d+)\s+critical/)
+                        def severeMatch = (scanOutput =~ /Number of components affected:\s+\d+\s+critical,\s+(\d+)\s+severe/)
                         
-                        // Fail if critical vulnerabilities found
+                        def criticalCount = criticalMatch ? criticalMatch[0][1].toInteger() : 0
+                        def severeCount = severeMatch ? severeMatch[0][1].toInteger() : 0
+                        
+                        echo "=== Quality Gate Check ==="
+                        echo "Critical Components: ${criticalCount}"
+                        echo "Severe Components: ${severeCount}"
+                        
+                        // Fail if critical vulnerabilities found (threshold: 0)
                         if (criticalCount > 0) {
                             error("Sonatype Quality Gate FAILED: Found ${criticalCount} critical components (threshold: 0)")
                         }
                         
-                        // Also check exit code
-                        if (scanStatus == 1) {
-                            error("Sonatype Quality Gate FAILED: Policy violations detected (exit code: ${scanStatus})")
+                        // Optional: Also fail on severe (adjust threshold as needed)
+                        if (severeCount > 10) {
+                            error("Sonatype Quality Gate FAILED: Found ${severeCount} severe components (threshold: 10)")
                         }
                         
-                        echo "Sonatype Quality Gate PASSED: No critical vulnerabilities"
+                        echo "Sonatype Quality Gate PASSED"
                     }
                 }
             }
