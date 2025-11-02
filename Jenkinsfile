@@ -120,14 +120,22 @@ pipeline{
             }
         }
         stage ('Trivy Scan'){
-            sh '''
-            trivy image --severity CRITICAL,HIGH secure-spring-app:latest
-            '''
+            steps{
+                dir('Java-app'){
+                    sh '''
+                    trivy image --severity CRITICAL,HIGH secure-spring-app:latest
+                    '''
+                }
+            }
         }
         stage ('Anchor Grype Scan'){
-            sh '''
-            grype secure-spring-app:latest --fail-on high
-            '''
+            steps{
+                dir('Java-app'){
+                    sh '''
+                    grype secure-spring-app:latest --fail-on high
+                    '''
+                }
+            }
         }
     }
 }
