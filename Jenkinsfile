@@ -123,20 +123,20 @@ pipeline{
     steps {
         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
             sh '''
-                # Scan for MEDIUM vulnerabilities
+                echo "=== Scanning image for MEDIUM vulnerabilities ==="
                 trivy image \
                     --severity MEDIUM \
                     --exit-code 0 \
-                    --quiet \
+                    --no-progress \
                     --format json \
                     --output trivy-image-MEDIUM-results.json \
                     secure-spring-app:latest
 
-                # Scan for CRITICAL vulnerabilities
+                echo "=== Scanning image for CRITICAL vulnerabilities ==="
                 trivy image \
                     --severity CRITICAL \
                     --exit-code 1 \
-                    --quiet \
+                    --no-progress \
                     --format json \
                     --output trivy-image-CRITICAL-results.json \
                     secure-spring-app:latest
@@ -146,33 +146,36 @@ pipeline{
     post {
         always {
             sh '''
+                echo "=== Converting Trivy JSON results to HTML & JUnit ==="
+
                 trivy convert \
                     --format template \
                     --template "@/usr/local/share/trivy/templates/html.tpl" \
                     --output trivy-image-MEDIUM-results.html \
-                    trivy-image-MEDIUM-results.json
+                    --input trivy-image-MEDIUM-results.json
 
                 trivy convert \
                     --format template \
                     --template "@/usr/local/share/trivy/templates/html.tpl" \
                     --output trivy-image-CRITICAL-results.html \
-                    trivy-image-CRITICAL-results.json
+                    --input trivy-image-CRITICAL-results.json
 
                 trivy convert \
                     --format template \
                     --template "@/usr/local/share/trivy/templates/junit.tpl" \
                     --output trivy-image-MEDIUM-results.xml \
-                    trivy-image-MEDIUM-results.json
+                    --input trivy-image-MEDIUM-results.json
 
                 trivy convert \
                     --format template \
                     --template "@/usr/local/share/trivy/templates/junit.tpl" \
                     --output trivy-image-CRITICAL-results.xml \
-                    trivy-image-CRITICAL-results.json
+                    --input trivy-image-CRITICAL-results.json
             '''
         }
     }
 }
+
 
         // stage ('Anchor Grype Scan'){
         //     steps{
