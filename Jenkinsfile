@@ -46,11 +46,11 @@ pipeline{
                     sh '''
                     # Check for critical and high severity vulnerabilities
                     echo "Checking vulnerability counts..."
-                    fcli ssc appversion-vuln count --av ${APPLICATION_ID}:${VERSION_NAME}
+                    fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME}
                     
                     # Get critical count
-                    CRITICAL=$(fcli ssc appversion-vuln count --av ${APPLICATION_ID}:${VERSION_NAME} -q "friority:Critical" -o expr="{totalCount}" || echo "0")
-                    HIGH=$(fcli ssc appversion-vuln count --av ${APPLICATION_ID}:${VERSION_NAME} -q "friority:High" -o expr="{totalCount}" || echo "0")
+                    CRITICAL=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "friority:Critical" -o expr="{totalCount}" || echo "0")
+                    HIGH=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "friority:High" -o expr="{totalCount}" || echo "0")
                     
                     echo "Critical vulnerabilities: $CRITICAL"
                     echo "High vulnerabilities: $HIGH"
@@ -58,6 +58,10 @@ pipeline{
                     # Fail if critical vulnerabilities exist
                     if [ "$CRITICAL" -gt "0" ]; then
                         echo "Quality Gate FAILED: Found $CRITICAL critical vulnerabilities"
+                        exit 1
+                    fi
+                    if [ "$HIGH" -gt "7" ]; then
+                        echo "Quality Gate FAILED: Found $HIGH high vulnerabilities"
                         exit 1
                     fi
                     
