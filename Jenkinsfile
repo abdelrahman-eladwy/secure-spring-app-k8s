@@ -80,19 +80,37 @@ pipeline{
                             returnStatus: true
                         )
                         
-                        sh '''
-                        echo "=== Sonatype Scan Results ==="
-                        if [ -f sca-results.json ]; then
-                            cat sca-results.json | jq '.policyAction, .componentsAffected'
-                        fi
-                        '''
+                        // Parse scan results and check for critical vulnerabilities
+                        def scanOutput = sh(
+                            script: '''
+                            if [ -f sca-results.json ]; then
+                                echo "=== Sonatype Scan Results ==="
+                                jq -r '.policyAction' sca-results.json
+                                echo "Critical Components: $(jq -r '.componentsAffected.critical // 0' sca-results.json)"
+                                echo "Severe Components: $(jq -r '.componentsAffected.severe // 0' sca-results.json)"
+                                jq -r '.componentsAffected.critical // 0' sca-results.json
+                            else
+                                echo "0"
+                            fi
+                            ''',
+                            returnStdout: true
+                        ).trim()
                         
-                        // Check scan exit code (0 = pass, 1 = policy violation)
+                        def criticalCount = scanOutput.split('\n')[-1].toInteger()
+                        
+                        echo "Critical components found: ${criticalCount}"
+                        
+                        // Fail if critical vulnerabilities found
+                        if (criticalCount > 0) {
+                            error("Sonatype Quality Gate FAILED: Found ${criticalCount} critical components (threshold: 0)")
+                        }
+                        
+                        // Also check exit code
                         if (scanStatus == 1) {
                             error("Sonatype Quality Gate FAILED: Policy violations detected (exit code: ${scanStatus})")
                         }
                         
-                        echo "Sonatype Quality Gate PASSED"
+                        echo "Sonatype Quality Gate PASSED: No critical vulnerabilities"
                     }
                 }
             }
