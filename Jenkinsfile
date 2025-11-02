@@ -79,16 +79,22 @@ pipeline{
                             ''',
                             returnStatus: true
                         )
-                        
-                        // Parse scan results and check for critical vulnerabilities
                         def scanOutput = sh(
                             script: '''
                             if [ -f sca-results.json ]; then
                                 echo "=== Sonatype Scan Results ==="
-                                jq -r '.policyAction' sca-results.json
-                                echo "Critical Components: $(jq -r '.componentsAffected.critical // 0' sca-results.json)"
-                                echo "Severe Components: $(jq -r '.componentsAffected.severe // 0' sca-results.json)"
-                                jq -r '.componentsAffected.critical // 0' sca-results.json
+                                echo "Full JSON structure:"
+                                cat sca-results.json | jq '.'
+                                echo ""
+                                echo "Policy Action: $(jq -r '.policyAction' sca-results.json)"
+                                
+                                # Try different JSON paths to find component counts
+                                CRITICAL=$(jq -r '.componentsAffected.critical // .components.critical // 0' sca-results.json)
+                                SEVERE=$(jq -r '.componentsAffected.severe // .components.severe // 0' sca-results.json)
+                                
+                                echo "Critical Components: $CRITICAL"
+                                echo "Severe Components: $SEVERE"
+                                echo "$CRITICAL"
                             else
                                 echo "0"
                             fi
