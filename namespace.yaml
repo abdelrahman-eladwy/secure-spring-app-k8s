@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: secure-spring-app
+  labels:
+    name: secure-spring-app
+    environment: production
