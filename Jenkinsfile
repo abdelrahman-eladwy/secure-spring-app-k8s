@@ -239,7 +239,7 @@ pipeline{
             git remote set-url origin https://$GITHUB_TOKEN@github.com/abdelrahman-eladwy/secure-spring-app-k8s.git
                         git add . 
                         git commit -m "FROM CI/CD - Update image tag to $GIT_COMMIT"
-                        git push origin feature-$BUILD_ID
+                        git push origin main
            """
         }
     }
