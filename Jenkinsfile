@@ -114,7 +114,7 @@ pipeline{
             steps{
                 dir('Java-app'){
                     sh '''
-                    docker build -t secure-spring-app:latest .
+                    docker build -t secure-spring-app:${BUILD_ID} .
                     '''
                 }
             }
