@@ -232,6 +232,7 @@ pipeline{
             cd secure-spring-app-k8s
             sed -i 's|image: .*|image: public.ecr.aws/f8a9z5u9/jenkins1:$BUILD_ID|g' deployment.yaml
             cat deployment.yaml
+            echo "Image tag changed successfully."
 
            '''
         }
