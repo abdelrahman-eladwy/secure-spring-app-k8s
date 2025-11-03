@@ -217,7 +217,7 @@ pipeline{
                     # Login to EC
                     aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/f8a9z5u9                         
                     # Tag and push image
-                    docker tag secure-spring-app:latest 786244777321.dkr.ecr.eu-central-1.amazonaws.com/jenkins:latest
+                    docker tag secure-spring-app:latest public.ecr.aws/f8a9z5u9/jenkins1:latest
                     docker push public.ecr.aws/f8a9z5u9/jenkins1:latest
                     '''
                 }
