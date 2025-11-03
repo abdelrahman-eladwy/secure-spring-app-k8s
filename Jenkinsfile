@@ -3,13 +3,15 @@ pipeline{
     environment{
         PATH = "/home/abdelrahman_aeladwy/Fortify/OpenText_SAST_Fortify_25.2.0/bin:/usr/local/bin:$PATH"
         GITHUB_URL = "https://github.com/abdelrahman-eladwy/Java-app.git"
-        CLIENT_AUTH_TOKEN = 'CHANGEME321!'
+        CLIENT_AUTH_TOKEN = credentials('fortify-client-auth-token')
         SSC_USERNAME = 'admin'
-        SSC_PASSWORD = 'Jpia331##'
+        SSC_PASSWORD = credentials('fortify-ssc-password')
         SSC_URL = "http://34.1.41.80:8080/ssc"
         APPLICATION_ID = "jenkins"
         VERSION_NAME = "jenkins"
         SENSOR_VERSION = "25.2"
+        GITHUB_TOKEN = credentials('GITHUB_TOKEN')
+        USER_EMAIL = "abdoahmed32522@gmail.com"
     }
     stages{
         stage ('SCM'){
@@ -233,6 +235,11 @@ pipeline{
             sed -i 's|image: .*|image: public.ecr.aws/f8a9z5u9/jenkins1:${BUILD_ID}|g' deployment.yaml
             cat deployment.yaml
             echo "Image tag changed successfully to BUILD_ID: ${BUILD_ID}"
+            git config --global user.email $USER_EMAIL
+            git remote set-url origin https://$GITHUB_TOKEN@github.com/abdelrahman-eladwy/secure-spring-app-k8s.git
+                        git add . 
+                        git commit -m "FROM CI/CD - Update image tag to $GIT_COMMIT"
+                        git push origin feature-$BUILD_ID
            """
         }
     }
