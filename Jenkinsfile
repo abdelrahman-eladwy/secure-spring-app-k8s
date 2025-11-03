@@ -226,15 +226,14 @@ pipeline{
     }
      stage('Change Image Tag') {
         steps {
-           sh '''
+           sh """
            rm -rf secure-spring-app-k8s
            git clone https://github.com/abdelrahman-eladwy/secure-spring-app-k8s.git
             cd secure-spring-app-k8s
-            sed -i 's|image: .*|image: public.ecr.aws/f8a9z5u9/jenkins1:$BUILD_ID|g' deployment.yaml
+            sed -i 's|image: .*|image: public.ecr.aws/f8a9z5u9/jenkins1:${BUILD_ID}|g' deployment.yaml
             cat deployment.yaml
-            echo "Image tag changed successfully."
-
-           '''
+            echo "Image tag changed successfully to BUILD_ID: ${BUILD_ID}"
+           """
         }
     }
 
