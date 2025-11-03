@@ -130,7 +130,7 @@ pipeline{
 //                     --no-progress \
 //                     --format json \
 //                     --output trivy-image-MEDIUM-results.json \
-//                     secure-spring-app:latest
+//                     secure-spring-app:${BUILD_ID}
 
 //                 echo "=== Scanning image for CRITICAL vulnerabilities ==="
 //                 trivy image \
@@ -139,7 +139,7 @@ pipeline{
 //                     --no-progress \
 //                     --format json \
 //                     --output trivy-image-CRITICAL-results.json \
-//                     secure-spring-app:latest
+//                     secure-spring-app:${BUILD_ID}
 //             '''
 //         }
 //     }
@@ -188,12 +188,12 @@ pipeline{
 //                 mkdir -p grype-report
 
 //                 # JSON report (for archiving)
-//                 grype secure-spring-app:latest \
+//                 grype secure-spring-app:${BUILD_ID} \
 //                     --fail-on high \
 //                     --output json > grype-report/grype-results.json || true
 
 //                 # HTML-style text report (for viewing)
-//                 grype secure-spring-app:latest \
+//                 grype secure-spring-app:${BUILD_ID} \
 //                     --output table > grype-report/grype-report.html || true
 //             '''
 //         }
@@ -224,8 +224,19 @@ pipeline{
             }
         }
     }
+     stage('Change Image Tag') {
+        steps {
+           sh '''
+           git clone https://github.com/abdelrahman-eladwy/secure-spring-app-k8s.git
+            cd secure-spring-app-k8s
+            sed -i 's|image: .*|image: public.ecr.aws/f8a9z5u9/jenkins1:${BUILD_ID}|g' deployment.yaml
+            cat deployment.yaml
+
+           '''
+        }
     }
 
+}
 }
 
 
