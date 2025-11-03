@@ -5,7 +5,7 @@ metadata:
   name: app-config
   namespace: secure-spring-app
 data:
-  SPRING_PROFILES_ACTIVE: "prod"
+  SPRING_PROFILES_ACTIVE: "docker"
   SERVER_PORT: "8080"
   DB_URL: "jdbc:mysql://mysql-service:3306/secureapp?useSSL=true"
   REDIS_HOST: "redis-service"
