@@ -214,7 +214,7 @@ pipeline{
             withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'jenkins-user', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                 script {
                     sh '''
-                    # Login to ECR
+                    # Login to EC
                     aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 786244777321.dkr.ecr.eu-central-1.amazonaws.com
                     
                     # Tag and push image
