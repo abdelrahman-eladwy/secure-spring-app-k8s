@@ -229,7 +229,7 @@ pipeline{
            sh '''
            git clone https://github.com/abdelrahman-eladwy/secure-spring-app-k8s.git
             cd secure-spring-app-k8s
-            sed -i 's|image: .*|image: public.ecr.aws/f8a9z5u9/jenkins1:${BUILD_ID}|g' deployment.yaml
+            sed -i 's|image: .*|image: public.ecr.aws/f8a9z5u9/jenkins1:$BUILD_ID|g' deployment.yaml
             cat deployment.yaml
 
            '''
