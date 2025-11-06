@@ -247,6 +247,7 @@ pipeline{
     stage('ScanCentral DAST Scan') {
         steps {
             sh '''
+                echo "TESTING"
                 echo "[INFO] Logging into SSC at ${SSC_URL}"
                 fcli ssc session login \
                 --user=${SSC_USERNAME} \
