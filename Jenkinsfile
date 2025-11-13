@@ -226,28 +226,6 @@ pipeline{
             }
         }
     }
-     stage('KubeBench Security Scan') {
-    steps {
-        sh '''
-            echo "=== Running KubeBench Security Scan ==="
-
-            # Download and apply kube-bench job for Minikube
-            kubectl apply -f https://raw.githubusercontent.com/aquasecurity/kube-bench/master/job.yaml --validate=false
-
-            echo "Waiting for job to complete..."
-            kubectl wait --for=condition=complete --timeout=300s job/kube-bench
-
-            POD=$(kubectl get pods -l job-name=kube-bench -o jsonpath='{.items[0].metadata.name}')
-
-            echo "=== KubeBench Results ==="
-            kubectl logs "$POD"
-
-            echo "=== Cleaning Up KubeBench Job ==="
-            kubectl delete job kube-bench --cascade=foreground
-        '''
-    }
-}
-
      stage('Change Image Tag') {
         steps {
            sh """
@@ -263,6 +241,37 @@ pipeline{
                         git commit -m "FROM CI/CD - Update image tag to $GIT_COMMIT"
                         git push origin main
            """
+        }
+    }
+     stage('KubeBench Security Scan') {
+        steps {
+            dir('secure-spring-app-k8s') {
+                sh '''
+                    echo "=== Running KubeBench Security Scan ==="
+
+                    # Clean up any previous kube-bench jobs
+                    kubectl delete job kube-bench --ignore-not-found=true
+
+                    # Apply kube-bench job from local file
+                    kubectl apply -f kube-bench-job.yaml
+
+                    echo "Waiting for job to complete..."
+                    kubectl wait --for=condition=complete --timeout=300s job/kube-bench || true
+
+                    # Get the pod name
+                    POD=$(kubectl get pods -l app=kube-bench -o jsonpath='{.items[0].metadata.name}')
+
+                    if [ -n "$POD" ]; then
+                        echo "=== KubeBench Results ==="
+                        kubectl logs "$POD" || echo "Failed to retrieve logs"
+                    else
+                        echo "WARNING: Could not find kube-bench pod"
+                    fi
+
+                    echo "=== Cleaning Up KubeBench Job ==="
+                    kubectl delete job kube-bench --ignore-not-found=true
+                '''
+            }
         }
     }
     //  stage('ScanCentral DAST Scan') {
