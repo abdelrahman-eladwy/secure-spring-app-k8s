@@ -230,6 +230,7 @@ pipeline{
         steps {
             dir('secure-spring-app-k8s') {
                 sh '''
+                    export PATH="/usr/local/bin:$PATH"
                     echo "=== Running KubeBench Security Scan ==="
 
                     # Clean up any previous kube-bench pod
