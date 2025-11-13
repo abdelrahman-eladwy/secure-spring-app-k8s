@@ -238,14 +238,17 @@ pipeline{
             git config --global user.email $USER_EMAIL
             git remote set-url origin https://$GITHUB_TOKEN@github.com/abdelrahman-eladwy/secure-spring-app-k8s.git
                         git add . 
-                        git commit -m "FROM CI/CD - Update image tag to $GIT_COMMIT"
+                        git commit -m "FROM CI/CD - Update image tag to ${BUILD_ID}"
                         git push origin main
            """
         }
     }
-    stage('KubeBench Security Scan') {
-        steps {
-            dir('secure-spring-app-k8s') {
+   stage('KubeBench Security Scan') {
+    steps {
+        dir('secure-spring-app-k8s') {
+
+            withKubeConfig([credentialsId: 'KUBECONFIG']) {
+
                 sh '''
                     export PATH="/usr/local/bin:$PATH"
                     echo "=== Running KubeBench Security Scan ==="
@@ -257,7 +260,7 @@ pipeline{
                     sleep 2
 
                     # Apply kube-bench pod from local file
-                    kubectl apply -f kube-bench-job.yaml
+                    kubectl apply -f kube-bench-job.yaml --validate=false
 
                     echo "Waiting for pod to complete (max 5 minutes)..."
                     
@@ -282,6 +285,8 @@ pipeline{
             }
         }
     }
+}
+
      
     //  stage('ScanCentral DAST Scan') {
     //     steps {
