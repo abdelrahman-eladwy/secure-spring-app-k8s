@@ -258,13 +258,13 @@ pipeline{
                     SCAN_NAME="jenkins-dast-scan-${BUILD_ID}"
                     echo "[INFO] Starting DAST scan: ${SCAN_NAME}"
                     echo "[INFO] Target URL: http://34.1.41.80:30101"
-                    echo "[INFO] Scan Settings ID: 36f076ac-fc74-494b-85f5-5d440a289539"
+                    echo "[INFO] Scan Settings ID: 873edd17-842b-4bef-843a-77764447f1e6"
                     
                     # Build the scan start command
                     SCAN_CMD="fcli sc-dast scan start \
                     --name=\"${SCAN_NAME}\" \
-                    --settings=36f076ac-fc74-494b-85f5-5d440a289539 \
-                    --mode=AuditOnly \
+                    --settings=873edd17-842b-4bef-843a-77764447f1e6 \
+                    --mode=CrawlAndAudit \
                     --store=DastScanId"
 
                     # Start the scan
