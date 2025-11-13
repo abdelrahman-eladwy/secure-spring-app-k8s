@@ -39,8 +39,10 @@ pipeline{
                     fcli sc-sast scan start --publish-to=${APPLICATION_ID}:${VERSION_NAME} --sensor-version=${SENSOR_VERSION} --file=package.zip --store=Id
                     fcli sc-sast scan wait-for ::Id:: --interval=30s
                     
-                    # Download the FPR file from SSC after scan completes
-                    fcli ssc artifact download --av ${APPLICATION_ID}:${VERSION_NAME} --file sast-results.fpr
+                    # Get the latest artifact ID and download the FPR file from SSC
+                    ARTIFACT_ID=$(fcli ssc artifact list --av ${APPLICATION_ID}:${VERSION_NAME} -o expr="{id}" --store=artifacts | head -1)
+                    echo "Downloading artifact ID: $ARTIFACT_ID"
+                    fcli ssc artifact download $ARTIFACT_ID --file sast-results.fpr
                     
                     echo "SAST scan completed and results downloaded to sast-results.fpr"
                     '''
