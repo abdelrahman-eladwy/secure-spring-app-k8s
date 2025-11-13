@@ -226,24 +226,7 @@ pipeline{
             }
         }
     }
-     stage('Change Image Tag') {
-        steps {
-           sh """
-           rm -rf secure-spring-app-k8s
-           git clone https://github.com/abdelrahman-eladwy/secure-spring-app-k8s.git
-            cd secure-spring-app-k8s
-            sed -i 's|image: .*|image: public.ecr.aws/f8a9z5u9/jenkins1:${BUILD_ID}|g' deployment.yaml
-            cat deployment.yaml
-            echo "Image tag changed successfully to BUILD_ID: ${BUILD_ID}"
-            git config --global user.email $USER_EMAIL
-            git remote set-url origin https://$GITHUB_TOKEN@github.com/abdelrahman-eladwy/secure-spring-app-k8s.git
-                        git add . 
-                        git commit -m "FROM CI/CD - Update image tag to $GIT_COMMIT"
-                        git push origin main
-           """
-        }
-    }
-     stage('KubeBench Security Scan') {
+    stage('KubeBench Security Scan') {
         steps {
             dir('secure-spring-app-k8s') {
                 sh '''
@@ -274,6 +257,24 @@ pipeline{
             }
         }
     }
+     stage('Change Image Tag') {
+        steps {
+           sh """
+           rm -rf secure-spring-app-k8s
+           git clone https://github.com/abdelrahman-eladwy/secure-spring-app-k8s.git
+            cd secure-spring-app-k8s
+            sed -i 's|image: .*|image: public.ecr.aws/f8a9z5u9/jenkins1:${BUILD_ID}|g' deployment.yaml
+            cat deployment.yaml
+            echo "Image tag changed successfully to BUILD_ID: ${BUILD_ID}"
+            git config --global user.email $USER_EMAIL
+            git remote set-url origin https://$GITHUB_TOKEN@github.com/abdelrahman-eladwy/secure-spring-app-k8s.git
+                        git add . 
+                        git commit -m "FROM CI/CD - Update image tag to $GIT_COMMIT"
+                        git push origin main
+           """
+        }
+    }
+     
     //  stage('ScanCentral DAST Scan') {
     //     steps {
     //         timeout(time: 300, unit: 'SECONDS') {
