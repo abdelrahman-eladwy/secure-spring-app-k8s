@@ -226,6 +226,28 @@ pipeline{
             }
         }
     }
+     stage('KubeBench Security Scan') {
+    steps {
+        sh '''
+            echo "=== Running KubeBench Security Scan ==="
+
+            # Apply kube-bench Job
+            kubectl apply -f https://raw.githubusercontent.com/aquasecurity/kube-bench/main/job.yaml
+
+            echo "Waiting for kube-bench job to start..."
+            kubectl wait --for=condition=complete --timeout=300s job/kube-bench
+
+            # Get the pod name created by the job
+            POD_NAME=$(kubectl get pods -l job-name=kube-bench -o jsonpath='{.items[0].metadata.name}')
+
+            echo "=== KubeBench Results ==="
+            kubectl logs "$POD_NAME"
+
+            echo "=== Cleaning Up KubeBench Job ==="
+            kubectl delete job kube-bench --cascade=foreground
+        '''
+    }
+}
      stage('Change Image Tag') {
         steps {
            sh """
@@ -243,53 +265,53 @@ pipeline{
            """
         }
     }
-     stage('ScanCentral DAST Scan') {
-        steps {
-            timeout(time: 300, unit: 'SECONDS') {
-                sh '''
-                    echo "[INFO] Logging into SSC at ${SSC_URL}"
-                    fcli ssc session login \
-                    --user=${SSC_USERNAME} \
-                    --password=${SSC_PASSWORD} \
-                    --url=${SSC_URL} \
-                    --insecure
+    //  stage('ScanCentral DAST Scan') {
+    //     steps {
+    //         timeout(time: 300, unit: 'SECONDS') {
+    //             sh '''
+    //                 echo "[INFO] Logging into SSC at ${SSC_URL}"
+    //                 fcli ssc session login \
+    //                 --user=${SSC_USERNAME} \
+    //                 --password=${SSC_PASSWORD} \
+    //                 --url=${SSC_URL} \
+    //                 --insecure
                     
-                    # Create scan name with timestamp
-                    SCAN_NAME="jenkins-dast-scan-${BUILD_ID}"
-                    echo "[INFO] Starting DAST scan: ${SCAN_NAME}"
-                    echo "[INFO] Target URL: http://34.1.41.80:30101"
-                    echo "[INFO] Scan Settings ID: 873edd17-842b-4bef-843a-77764447f1e6"
+    //                 # Create scan name with timestamp
+    //                 SCAN_NAME="jenkins-dast-scan-${BUILD_ID}"
+    //                 echo "[INFO] Starting DAST scan: ${SCAN_NAME}"
+    //                 echo "[INFO] Target URL: http://34.1.41.80:30101"
+    //                 echo "[INFO] Scan Settings ID: 873edd17-842b-4bef-843a-77764447f1e6"
                     
-                    # Build the scan start command
-                    SCAN_CMD="fcli sc-dast scan start \
-                    --name=\"${SCAN_NAME}\" \
-                    --settings=873edd17-842b-4bef-843a-77764447f1e6 \
-                    --mode=CrawlAndAudit \
-                    --store=DastScanId"
+    //                 # Build the scan start command
+    //                 SCAN_CMD="fcli sc-dast scan start \
+    //                 --name=\"${SCAN_NAME}\" \
+    //                 --settings=873edd17-842b-4bef-843a-77764447f1e6 \
+    //                 --mode=CrawlAndAudit \
+    //                 --store=DastScanId"
 
-                    # Start the scan
-                    echo "[INFO] Executing: ${SCAN_CMD}"
-                    eval ${SCAN_CMD}
+    //                 # Start the scan
+    //                 echo "[INFO] Executing: ${SCAN_CMD}"
+    //                 eval ${SCAN_CMD}
                     
-                    echo "[INFO] DAST scan started successfully with ID: ::DastScanId::"
+    //                 echo "[INFO] DAST scan started successfully with ID: ::DastScanId::"
                     
-                    # Wait for scan to complete
-                    echo "[INFO] Waiting for DAST scan to complete..."
-                    fcli sc-dast scan wait-for ::DastScanId:: --interval=60s --timeout=300s
+    //                 # Wait for scan to complete
+    //                 echo "[INFO] Waiting for DAST scan to complete..."
+    //                 fcli sc-dast scan wait-for ::DastScanId:: --interval=60s --timeout=300s
                     
-                    echo "[INFO] DAST scan completed successfully"
+    //                 echo "[INFO] DAST scan completed successfully"
                     
-                    # Get scan results
-                    echo "[INFO] Retrieving scan results..."
-                    fcli sc-dast scan get ::DastScanId:: --output table
+    //                 # Get scan results
+    //                 echo "[INFO] Retrieving scan results..."
+    //                 fcli sc-dast scan get ::DastScanId:: --output table
                     
-                    # Logout from SSC
-                    echo "[INFO] Logging out from SSC"
-                    fcli ssc session logout
-                '''
-            }
-        }
-    }
+    //                 # Logout from SSC
+    //                 echo "[INFO] Logging out from SSC"
+    //                 fcli ssc session logout
+    //             '''
+    //         }
+    //     }
+    // }
     }
 }
 
