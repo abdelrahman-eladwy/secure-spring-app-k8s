@@ -232,27 +232,34 @@ pipeline{
                 sh '''
                     echo "=== Running KubeBench Security Scan ==="
 
-                    # Clean up any previous kube-bench jobs
-                    kubectl delete job kube-bench --ignore-not-found=true
+                    # Clean up any previous kube-bench pod
+                    kubectl delete pod kube-bench --ignore-not-found=true
 
-                    # Apply kube-bench job from local file
+                    # Wait a moment for cleanup
+                    sleep 2
+
+                    # Apply kube-bench pod from local file
                     kubectl apply -f kube-bench-job.yaml
 
-                    echo "Waiting for job to complete..."
-                    kubectl wait --for=condition=complete --timeout=300s job/kube-bench || true
+                    echo "Waiting for pod to complete (max 5 minutes)..."
+                    
+                    # Wait for pod to be running or complete
+                    for i in {1..60}; do
+                        STATUS=$(kubectl get pod kube-bench -o jsonpath='{.status.phase}' 2>/dev/null || echo "NotFound")
+                        echo "Pod status: $STATUS"
+                        
+                        if [ "$STATUS" = "Succeeded" ] || [ "$STATUS" = "Failed" ]; then
+                            break
+                        fi
+                        
+                        sleep 5
+                    done
 
-                    # Get the pod name
-                    POD=$(kubectl get pods -l app=kube-bench -o jsonpath='{.items[0].metadata.name}')
+                    echo "=== KubeBench Results ==="
+                    kubectl logs kube-bench || echo "Failed to retrieve logs"
 
-                    if [ -n "$POD" ]; then
-                        echo "=== KubeBench Results ==="
-                        kubectl logs "$POD" || echo "Failed to retrieve logs"
-                    else
-                        echo "WARNING: Could not find kube-bench pod"
-                    fi
-
-                    echo "=== Cleaning Up KubeBench Job ==="
-                    kubectl delete job kube-bench --ignore-not-found=true
+                    echo "=== Cleaning Up KubeBench Pod ==="
+                    kubectl delete pod kube-bench --ignore-not-found=true
                 '''
             }
         }
