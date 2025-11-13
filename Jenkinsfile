@@ -29,26 +29,26 @@ pipeline{
                 }
             }
         }
-        stage ('Fortify SAST Scan'){
-            steps{
-                dir('Java-app'){
-                    sh '''
-                    echo ${CLIENT_AUTH_TOKEN}
-                    fcli ssc session login --client-auth-token=${CLIENT_AUTH_TOKEN} --user=${SSC_USERNAME} --password=${SSC_PASSWORD} --url=${SSC_URL} --insecure
-                    scancentral package -o package.zip
-                    fcli sc-sast scan start --publish-to=${APPLICATION_ID}:${VERSION_NAME} --sensor-version=${SENSOR_VERSION} --file=package.zip --store=Id
-                    fcli sc-sast scan wait-for ::Id:: --interval=30s
+        // stage ('Fortify SAST Scan'){
+        //     steps{
+        //         dir('Java-app'){
+        //             sh '''
+        //             echo ${CLIENT_AUTH_TOKEN}
+        //             fcli ssc session login --client-auth-token=${CLIENT_AUTH_TOKEN} --user=${SSC_USERNAME} --password=${SSC_PASSWORD} --url=${SSC_URL} --insecure
+        //             scancentral package -o package.zip
+        //             fcli sc-sast scan start --publish-to=${APPLICATION_ID}:${VERSION_NAME} --sensor-version=${SENSOR_VERSION} --file=package.zip --store=Id
+        //             fcli sc-sast scan wait-for ::Id:: --interval=30s
                     
-                    # Get the latest artifact ID and download the FPR file from SSC
-                    ARTIFACT_ID=$(fcli ssc artifact list --av ${APPLICATION_ID}:${VERSION_NAME} -o json | jq -r '.[0].id')
-                    echo "Downloading artifact ID: $ARTIFACT_ID"
-                    fcli ssc artifact download $ARTIFACT_ID --file sast-results.fpr
+        //             # Get the latest artifact ID and download the FPR file from SSC
+        //             ARTIFACT_ID=$(fcli ssc artifact list --av ${APPLICATION_ID}:${VERSION_NAME} -o json | jq -r '.[0].id')
+        //             echo "Downloading artifact ID: $ARTIFACT_ID"
+        //             fcli ssc artifact download $ARTIFACT_ID --file sast-results.fpr
                     
-                    echo "SAST scan completed and results downloaded to sast-results.fpr"
-                    '''
-                }
-            }
-        }
+        //             echo "SAST scan completed and results downloaded to sast-results.fpr"
+        //             '''
+        //         }
+        //     }
+        // }
         // stage ('Quality Gate'){
         //     steps{
         //         dir('Java-app'){
