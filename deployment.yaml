@@ -31,7 +31,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: secure-spring-app
-        image: public.ecr.aws/f8a9z5u9/jenkins1:169
+        image: public.ecr.aws/f8a9z5u9/jenkins1:170
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
