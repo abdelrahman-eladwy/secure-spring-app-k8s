@@ -231,23 +231,23 @@ pipeline{
         sh '''
             echo "=== Running KubeBench Security Scan ==="
 
-            # Apply kube-bench Job
-            kubectl apply -f https://raw.githubusercontent.com/aquasecurity/kube-bench/main/job.yaml
+            # Download and apply kube-bench job for Minikube
+            kubectl apply -f https://raw.githubusercontent.com/aquasecurity/kube-bench/master/job.yaml --validate=false
 
-            echo "Waiting for kube-bench job to start..."
+            echo "Waiting for job to complete..."
             kubectl wait --for=condition=complete --timeout=300s job/kube-bench
 
-            # Get the pod name created by the job
-            POD_NAME=$(kubectl get pods -l job-name=kube-bench -o jsonpath='{.items[0].metadata.name}')
+            POD=$(kubectl get pods -l job-name=kube-bench -o jsonpath='{.items[0].metadata.name}')
 
             echo "=== KubeBench Results ==="
-            kubectl logs "$POD_NAME"
+            kubectl logs "$POD"
 
             echo "=== Cleaning Up KubeBench Job ==="
             kubectl delete job kube-bench --cascade=foreground
         '''
     }
 }
+
      stage('Change Image Tag') {
         steps {
            sh """
