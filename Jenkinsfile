@@ -38,8 +38,11 @@ pipeline{
                     scancentral package -o package.zip
                     fcli sc-sast scan start --publish-to=${APPLICATION_ID}:${VERSION_NAME} --sensor-version=${SENSOR_VERSION} --file=package.zip --store=Id
                     fcli sc-sast scan wait-for ::Id:: --interval=30s
-                    fcli sc-sast results export ::Id:: --file sast-results.fpr
-
+                    
+                    # Download the FPR file from SSC after scan completes
+                    fcli ssc artifact download --av ${APPLICATION_ID}:${VERSION_NAME} --file sast-results.fpr
+                    
+                    echo "SAST scan completed and results downloaded to sast-results.fpr"
                     '''
                 }
             }
