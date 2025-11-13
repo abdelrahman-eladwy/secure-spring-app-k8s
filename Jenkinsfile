@@ -29,43 +29,43 @@ pipeline{
                 }
             }
         }
-        // stage ('Fortify SAST Scan'){
-        //     steps{
-        //         dir('Java-app'){
-        //             sh '''
-        //             echo ${CLIENT_AUTH_TOKEN}
-        //             fcli ssc session login --client-auth-token=${CLIENT_AUTH_TOKEN} --user=${SSC_USERNAME} --password=${SSC_PASSWORD} --url=${SSC_URL} --insecure
-        //             scancentral package -o package.zip
-        //             fcli sc-sast scan start --publish-to=${APPLICATION_ID}:${VERSION_NAME} --sensor-version=${SENSOR_VERSION} --file=package.zip --store=Id
-        //             fcli sc-sast scan wait-for ::Id:: --interval=30s
-        //             '''
-        //         }
-        //     }
-        // }
-        // stage ('Quality Gate'){
-        //     steps{
-        //         dir('Java-app'){
-        //             sh '''
+        stage ('Fortify SAST Scan'){
+            steps{
+                dir('Java-app'){
+                    sh '''
+                    echo ${CLIENT_AUTH_TOKEN}
+                    fcli ssc session login --client-auth-token=${CLIENT_AUTH_TOKEN} --user=${SSC_USERNAME} --password=${SSC_PASSWORD} --url=${SSC_URL} --insecure
+                    scancentral package -o package.zip
+                    fcli sc-sast scan start --publish-to=${APPLICATION_ID}:${VERSION_NAME} --sensor-version=${SENSOR_VERSION} --file=package.zip --store=Id
+                    fcli sc-sast scan wait-for ::Id:: --interval=30s
+                    '''
+                }
+            }
+        }
+        stage ('Quality Gate'){
+            steps{
+                dir('Java-app'){
+                    sh '''
                   
-        //             # Get critical and high counts using SpEL query syntax
-        //             CRITICAL=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "cleanName=='Critical'" -o expr="{totalCount}" || echo "0")
-        //             HIGH=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "cleanName=='High'" -o expr="{totalCount}" || echo "0")
+                    # Get critical and high counts using SpEL query syntax
+                    CRITICAL=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "cleanName=='Critical'" -o expr="{totalCount}" || echo "0")
+                    HIGH=$(fcli ssc issue count --av ${APPLICATION_ID}:${VERSION_NAME} -q "cleanName=='High'" -o expr="{totalCount}" || echo "0")
                     
-        //             # Fail if critical vulnerabilities exist
-        //             if [ "$CRITICAL" -gt "0" ]; then
-        //                 echo "Quality Gate FAILED: Found $CRITICAL critical vulnerabilities"
-        //                 exit 1
-        //             fi
-        //             if [ "$HIGH" -gt "7" ]; then
-        //                 echo "Quality Gate FAILED: Found $HIGH high vulnerabilities (threshold: 7)"
-        //                 exit 1
-        //             fi
+                    # Fail if critical vulnerabilities exist
+                    if [ "$CRITICAL" -gt "0" ]; then
+                        echo "Quality Gate FAILED: Found $CRITICAL critical vulnerabilities"
+                        exit 1
+                    fi
+                    if [ "$HIGH" -gt "7" ]; then
+                        echo "Quality Gate FAILED: Found $HIGH high vulnerabilities (threshold: 7)"
+                        exit 1
+                    fi
                     
-        //             echo "Quality Gate PASSED: Critical=$CRITICAL, High=$HIGH (threshold: 7)"
-        //             '''
-        //         }
-        //     }
-        // }
+                    echo "Quality Gate PASSED: Critical=$CRITICAL, High=$HIGH (threshold: 7)"
+                    '''
+                }
+            }
+        }
         // stage ('Sonatype SCA Scan'){
         //     steps{
         //         dir('Java-app'){
