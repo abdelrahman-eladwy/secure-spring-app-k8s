@@ -274,7 +274,7 @@ pipeline{
                 
                 # Wait for scan to complete
                 echo "[INFO] Waiting for DAST scan to complete..."
-                fcli sc-dast scan wait-for ::DastScanId:: --interval=60s
+                fcli sc-dast scan wait-for ::DastScanId:: --interval=200s
                 
                 echo "[INFO] DAST scan completed successfully"
                 
