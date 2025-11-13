@@ -40,7 +40,7 @@ pipeline{
                     fcli sc-sast scan wait-for ::Id:: --interval=30s
                     
                     # Get the latest artifact ID and download the FPR file from SSC
-                    ARTIFACT_ID=$(fcli ssc artifact list --av ${APPLICATION_ID}:${VERSION_NAME} -o json | jq -r '.[0].id)
+                    ARTIFACT_ID=$(fcli ssc artifact list --av ${APPLICATION_ID}:${VERSION_NAME} -o json | jq -r '.[0].id')
                     echo "Downloading artifact ID: $ARTIFACT_ID"
                     fcli ssc artifact download $ARTIFACT_ID --file sast-results.fpr
                     
