@@ -263,7 +263,7 @@ pipeline{
                 SCAN_CMD="fcli sc-dast scan start \
                 --name=\"${SCAN_NAME}\" \
                 --settings=36f076ac-fc74-494b-85f5-5d440a289539 \
-                --mode=CrawlAndAudit \
+                --mode=AuditOnly \
                 --store=DastScanId"
 
                 # Start the scan
