@@ -29,26 +29,26 @@ pipeline{
                 }
             }
         }
-        stage ('Fortify SAST Scan'){
-            steps{
-                dir('Java-app'){
-                    sh '''
-                    echo ${CLIENT_AUTH_TOKEN}
-                    fcli ssc session login --client-auth-token=${CLIENT_AUTH_TOKEN} --user=${SSC_USERNAME} --password=${SSC_PASSWORD} --url=${SSC_URL} --insecure
-                    scancentral package -o package.zip
-                    fcli sc-sast scan start --publish-to=${APPLICATION_ID}:${VERSION_NAME} --sensor-version=${SENSOR_VERSION} --file=package.zip --store=Id
-                    fcli sc-sast scan wait-for ::Id:: --interval=30s
+        // stage ('Fortify SAST Scan'){
+        //     steps{
+        //         dir('Java-app'){
+        //             sh '''
+        //             echo ${CLIENT_AUTH_TOKEN}
+        //             fcli ssc session login --client-auth-token=${CLIENT_AUTH_TOKEN} --user=${SSC_USERNAME} --password=${SSC_PASSWORD} --url=${SSC_URL} --insecure
+        //             scancentral package -o package.zip
+        //             fcli sc-sast scan start --publish-to=${APPLICATION_ID}:${VERSION_NAME} --sensor-version=${SENSOR_VERSION} --file=package.zip --store=Id
+        //             fcli sc-sast scan wait-for ::Id:: --interval=30s
                     
-                    # Get the latest artifact ID and download the FPR file from SSC
-                    ARTIFACT_ID=$(fcli ssc artifact list --av ${APPLICATION_ID}:${VERSION_NAME} -o json | jq -r '.[0].id')
-                    echo "Downloading artifact ID: $ARTIFACT_ID"
-                    fcli ssc artifact download $ARTIFACT_ID --file sast-results.fpr
+        //             # Get the latest artifact ID and download the FPR file from SSC
+        //             ARTIFACT_ID=$(fcli ssc artifact list --av ${APPLICATION_ID}:${VERSION_NAME} -o json | jq -r '.[0].id')
+        //             echo "Downloading artifact ID: $ARTIFACT_ID"
+        //             fcli ssc artifact download $ARTIFACT_ID --file sast-results.fpr
                     
-                    echo "SAST scan completed and results downloaded to sast-results.fpr"
-                    '''
-                }
-            }
-        }
+        //             echo "SAST scan completed and results downloaded to sast-results.fpr"
+        //             '''
+        //         }
+        //     }
+        // }
         // stage ('Quality Gate'){
         //     steps{
         //         dir('Java-app'){
@@ -295,53 +295,39 @@ pipeline{
 }
 
      
-    //  stage('ScanCentral DAST Scan') {
-    //     steps {
-    //         timeout(time: 300, unit: 'SECONDS') {
-    //             sh '''
-    //                 echo "[INFO] Logging into SSC at ${SSC_URL}"
-    //                 fcli ssc session login \
-    //                 --user=${SSC_USERNAME} \
-    //                 --password=${SSC_PASSWORD} \
-    //                 --url=${SSC_URL} \
-    //                 --insecure
-                    
-    //                 # Create scan name with timestamp
-    //                 SCAN_NAME="jenkins-dast-scan-${BUILD_ID}"
-    //                 echo "[INFO] Starting DAST scan: ${SCAN_NAME}"
-    //                 echo "[INFO] Target URL: http://34.1.41.80:30101"
-    //                 echo "[INFO] Scan Settings ID: 873edd17-842b-4bef-843a-77764447f1e6"
-                    
-    //                 # Build the scan start command
-    //                 SCAN_CMD="fcli sc-dast scan start \
-    //                 --name=\"${SCAN_NAME}\" \
-    //                 --settings=873edd17-842b-4bef-843a-77764447f1e6 \
-    //                 --mode=CrawlAndAudit \
-    //                 --store=DastScanId"
+     stage('ScanCentral DAST Scan') {
+    steps {
+        sh '''
+            echo ${CLIENT_AUTH_TOKEN}
 
-    //                 # Start the scan
-    //                 echo "[INFO] Executing: ${SCAN_CMD}"
-    //                 eval ${SCAN_CMD}
-                    
-    //                 echo "[INFO] DAST scan started successfully with ID: ::DastScanId::"
-                    
-    //                 # Wait for scan to complete
-    //                 echo "[INFO] Waiting for DAST scan to complete..."
-    //                 fcli sc-dast scan wait-for ::DastScanId:: --interval=60s --timeout=300s
-                    
-    //                 echo "[INFO] DAST scan completed successfully"
-                    
-    //                 # Get scan results
-    //                 echo "[INFO] Retrieving scan results..."
-    //                 fcli sc-dast scan get ::DastScanId:: --output table
-                    
-    //                 # Logout from SSC
-    //                 echo "[INFO] Logging out from SSC"
-    //                 fcli ssc session logout
-    //             '''
-    //         }
-    //     }
-    // }
+            # Login
+            fcli ssc session login --client-auth-token=${CLIENT_AUTH_TOKEN} \
+                --user=${SSC_USERNAME} --password=${SSC_PASSWORD} \
+                --url=${SSC_URL} --insecure
+
+            # Start DAST scan and store ID
+            fcli sc-dast scan start \
+                --name="jenkins-dast-${BUILD_ID}" \
+                --settings=873edd17-842b-4bef-843a-77764447f1e6 \
+                --mode=CrawlAndAudit \
+                --store=Id
+
+            # Wait for completion
+            fcli sc-dast scan wait-for ::Id:: --interval=30s
+
+            # Get latest artifact ID (same pattern as SAST)
+            ARTIFACT_ID=$(fcli ssc artifact list --av ${APPLICATION_ID}:${VERSION_NAME} -o json | jq -r '.[0].id')
+
+            echo "Downloading artifact ID: $ARTIFACT_ID"
+
+            # Download FPR
+            fcli ssc artifact download $ARTIFACT_ID --file dast-results.fpr
+
+            echo "DAST scan completed and results downloaded to dast-results.fpr"
+        '''
+    }
+}
+
     }
 }
 
