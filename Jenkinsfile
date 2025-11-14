@@ -348,6 +348,48 @@ pipeline{
         }
     }
 }
+stage('Upload Security Reports to S3') {
+    steps {
+        withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', 
+                             secretKeyVariable: 'AWS_SECRET_ACCESS_KEY',
+                             credentialsId: 'jenkins-user')]) {
+
+            sh '''
+                echo "=== Preparing S3 Uploads ==="
+                mkdir -p s3-artifacts
+
+                # Collect Fortify SAST
+                if [ -f Java-app/sast-results.fpr ]; then
+                    cp Java-app/sast-results.fpr s3-artifacts/sast-results-${BUILD_ID}.fpr
+                fi
+
+                # Collect Fortify DAST
+                if [ -f dast-results.fpr ]; then
+                    cp dast-results.fpr s3-artifacts/dast-results-${BUILD_ID}.fpr
+                fi
+
+                # Collect Trivy Reports (if pipeline enabled)
+                if ls trivy-* >/dev/null 2>&1; then
+                    cp trivy-* s3-artifacts/
+                fi
+
+                # Collect Grype Reports
+                if [ -d grype-report ]; then
+                    cp grype-report/* s3-artifacts/
+                fi
+
+                # Save KubeBench logs to file
+                echo "=== Saving KubeBench Logs ==="
+                kubectl logs kube-bench > s3-artifacts/kubebench-${BUILD_ID}.log 2>/dev/null || true
+
+                echo "=== Uploading All Artifacts to S3 ==="
+                aws s3 cp s3-artifacts s3://jenkins-zinad/${BUILD_ID}/ --recursive
+
+                echo "=== Upload Completed Successfully ==="
+            '''
+        }
+    }
+}
 
 
     }
