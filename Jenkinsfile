@@ -255,7 +255,7 @@ stage('KubeBench Security Scan') {
         dir('secure-spring-app-k8s') {
             withCredentials([
                 aws(
-                    credentialsId: 'jenkins-user',
+                    credentialsId: 'jenkins-eks',
                     accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 )
