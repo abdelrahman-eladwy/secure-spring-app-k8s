@@ -258,39 +258,38 @@ pipeline{
                              credentialsId: 'jenkins-user')]) {
             withKubeConfig([credentialsId: 'KUBECONFIG']) {
 
-                sh '''
-                    export PATH="/usr/local/bin:$PATH"
-                    echo "=== Running KubeBench Security Scan ==="
+                                   sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=eu-central-1
+                        export AWS_REGION=eu-central-1
 
-                    # Clean up any previous kube-bench pod
-                    kubectl delete pod kube-bench --ignore-not-found=true
-
-                    # Wait a moment for cleanup
-                    sleep 2
-
-                    # Apply kube-bench pod from local file
-                    kubectl apply -f kube-bench-job.yaml --validate=false
-
-                    echo "Waiting for pod to complete (max 5 minutes)..."
-                    
-                    # Wait for pod to be running or complete
-                    for i in {1..60}; do
-                        STATUS=$(kubectl get pod kube-bench -o jsonpath='{.status.phase}' 2>/dev/null || echo "NotFound")
-                        echo "Pod status: $STATUS"
+                        echo "[INFO] === Running KubeBench Security Scan ==="
                         
-                        if [ "$STATUS" = "Succeeded" ] || [ "$STATUS" = "Failed" ]; then
-                            break
-                        fi
-                        
-                        sleep 5
-                    done
+                        kubectl get nodes -o wide
+                        echo "[SUCCESS] Authenticated to EKS"
 
-                    echo "=== KubeBench Results ==="
-                    kubectl logs kube-bench || echo "Failed to retrieve logs"
+                        kubectl delete pod kube-bench --ignore-not-found=true
+                        sleep 2
 
-                    echo "=== Cleaning Up KubeBench Pod ==="
-                    kubectl delete pod kube-bench --ignore-not-found=true
-                '''
+                        kubectl apply -f kube-bench-job.yaml --validate=false
+
+                        echo "Waiting for kube-bench to finish..."
+                        for i in {1..60}; do
+                            STATUS=$(kubectl get pod kube-bench -o jsonpath='{.status.phase}' 2>/dev/null || echo "NotFound")
+                            echo "Status: $STATUS"
+                            if [ "$STATUS" = "Succeeded" ] || [ "$STATUS" = "Failed" ]; then
+                                break
+                            fi
+                            sleep 5
+                        done
+
+                        echo "[INFO] === KubeBench Results ==="
+                        kubectl logs kube-bench || true
+
+                        echo "[INFO] Cleaning up kube-bench pod"
+                        kubectl delete pod kube-bench --ignore-not-found=true
+                    '''
             }
         }
         }
