@@ -8,7 +8,7 @@ data:
   SPRING_PROFILES_ACTIVE: "docker"
   SERVER_PORT: "8080"
   DB_URL: "jdbc:mysql://database-1.czuqqsmc6646.eu-central-1.rds.amazonaws.com:3306/secureappdb?useSSL=true&requireSSL=true&serverTimezone=UTC"
-  REDIS_HOST: "redis-service"
+  REDIS_HOST: "redis-service.svc.redis.cluster.local" #Across ns access so use FQDN
   REDIS_PORT: "6379"
   VAULT_HOST: "vault"
   VAULT_PORT: "8200"
