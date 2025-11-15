@@ -273,14 +273,14 @@ stage('KubeBench Security Scan') {
                         kubectl get nodes -o wide
                         echo "[SUCCESS] Authenticated to EKS"
 
-                        kubectl delete pod kube-bench -n kube-bench --ignore-not-found=true
+                        kubectl delete job kube-bench -n kube-bench --ignore-not-found=true
                         sleep 2
 
-                        kubectl apply -f kube-bench-job.yaml -n kube-bench --validate=false
+                        kubectl apply -f kube-bench-job.yaml --validate=false
 
                         echo "Waiting for kube-bench to finish..."
                         for i in {1..60}; do
-                            STATUS=$(kubectl get pod kube-bench -o jsonpath='{.status.phase}' 2>/dev/null || echo "NotFound")
+                            STATUS=$(kubectl get job kube-bench -n kube-bench -o jsonpath='{.status.phase}' 2>/dev/null || echo "NotFound")
                             echo "Status: $STATUS"
                             if [ "$STATUS" = "Succeeded" ] || [ "$STATUS" = "Failed" ]; then
                                 break
@@ -289,10 +289,10 @@ stage('KubeBench Security Scan') {
                         done
 
                         echo "[INFO] === KubeBench Results ==="
-                        kubectl logs kube-bench -n kube-bench || true
+                        kubectl logs job/kube-bench -n kube-bench || true
 
                         echo "[INFO] Cleaning up kube-bench pod"
-                        kubectl delete pod kube-bench -n kube-bench --ignore-not-found=true
+                        kubectl delete job kube-bench -n kube-bench --ignore-not-found=true
                     '''
                 }
             }
