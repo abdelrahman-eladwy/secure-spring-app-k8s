@@ -273,6 +273,9 @@ stage('KubeBench Security Scan') {
                         kubectl get nodes -o wide
                         echo "[SUCCESS] Authenticated to EKS"
 
+                        # Ensure kube-bench namespace exists
+                        kubectl create namespace kube-bench --dry-run=client -o yaml | kubectl apply -f -
+
                         kubectl delete job kube-bench -n kube-bench --ignore-not-found=true
                         sleep 2
 
