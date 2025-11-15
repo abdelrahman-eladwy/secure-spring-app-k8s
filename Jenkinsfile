@@ -250,15 +250,19 @@ pipeline{
     //        """
     //     }
     // }
-   stage('KubeBench Security Scan') {
+stage('KubeBench Security Scan') {
     steps {
         dir('secure-spring-app-k8s') {
-            withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', 
-                             secretKeyVariable: 'AWS_SECRET_ACCESS_KEY',
-                             credentialsId: 'jenkins-user')]) {
-            withKubeConfig([credentialsId: 'KUBECONFIG']) {
+            withCredentials([
+                aws(
+                    credentialsId: 'jenkins-user',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                )
+            ]) {
+                withKubeConfig([credentialsId: 'KUBECONFIG']) {
 
-                                   sh '''
+                    sh '''
                         export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
                         export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                         export AWS_DEFAULT_REGION=eu-central-1
@@ -290,11 +294,12 @@ pipeline{
                         echo "[INFO] Cleaning up kube-bench pod"
                         kubectl delete pod kube-bench --ignore-not-found=true
                     '''
+                }
             }
-        }
         }
     }
 }
+
 
      
      stage('ScanCentral DAST Scan') {
