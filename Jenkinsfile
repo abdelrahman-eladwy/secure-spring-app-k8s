@@ -276,7 +276,7 @@ stage('KubeBench Security Scan') {
                         kubectl delete job kube-bench -n kube-bench --ignore-not-found=true
                         sleep 2
 
-                        kubectl apply -f kube-bench-job.yaml --validate=false
+                        kubectl apply -f kube-bench-job.yaml -n kube-bench --validate=false
 
                         echo "Waiting for kube-bench to finish..."
                         for i in {1..60}; do
