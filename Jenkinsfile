@@ -281,6 +281,9 @@ stage('KubeBench Security Scan') {
 
                         kubectl apply -f kube-bench-job.yaml -n kube-bench --validate=false
 
+                        echo "Waiting for kube-bench pod to be created..."
+                        sleep 10
+                        
                         echo "Waiting for kube-bench to finish..."
                         for i in {1..60}; do
                             POD_STATUS=$(kubectl get pods -n kube-bench -l job-name=kube-bench -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "NotFound")
