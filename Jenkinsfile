@@ -253,7 +253,9 @@ pipeline{
    stage('KubeBench Security Scan') {
     steps {
         dir('secure-spring-app-k8s') {
-
+            withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', 
+                             secretKeyVariable: 'AWS_SECRET_ACCESS_KEY',
+                             credentialsId: 'jenkins-user')]) {
             withKubeConfig([credentialsId: 'KUBECONFIG']) {
 
                 sh '''
@@ -290,6 +292,7 @@ pipeline{
                     kubectl delete pod kube-bench --ignore-not-found=true
                 '''
             }
+        }
         }
     }
 }
