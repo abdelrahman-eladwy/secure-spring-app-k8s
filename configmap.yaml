@@ -7,7 +7,7 @@ metadata:
 data:
   SPRING_PROFILES_ACTIVE: "docker"
   SERVER_PORT: "8080"
-  DB_URL: "jdbc:mysql://mysql-service:3306/secureapp?useSSL=true"
+  DB_URL: "jdbc:mysql://database-1.czuqqsmc6646.eu-central-1.rds.amazonaws.com:3306/secureappdb?useSSL=true&requireSSL=true&serverTimezone=UTC"
   REDIS_HOST: "redis-service"
   REDIS_PORT: "6379"
   VAULT_HOST: "vault"
