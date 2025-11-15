@@ -283,18 +283,18 @@ stage('KubeBench Security Scan') {
 
                         echo "Waiting for kube-bench to finish..."
                         for i in {1..60}; do
-                            STATUS=$(kubectl get job kube-bench -n kube-bench -o jsonpath='{.status.phase}' 2>/dev/null || echo "NotFound")
-                            echo "Status: $STATUS"
-                            if [ "$STATUS" = "Succeeded" ] || [ "$STATUS" = "Failed" ]; then
+                            POD_STATUS=$(kubectl get pods -n kube-bench -l job-name=kube-bench -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "NotFound")
+                            echo "Pod Status: $POD_STATUS"
+                            if [ "$POD_STATUS" = "Succeeded" ] || [ "$POD_STATUS" = "Failed" ]; then
                                 break
                             fi
                             sleep 5
                         done
 
                         echo "[INFO] === KubeBench Results ==="
-                        kubectl logs job/kube-bench -n kube-bench || true
+                        kubectl logs -n kube-bench -l job-name=kube-bench || true
 
-                        echo "[INFO] Cleaning up kube-bench pod"
+                        echo "[INFO] Cleaning up kube-bench job"
                         kubectl delete job kube-bench -n kube-bench --ignore-not-found=true
                     '''
                 }
