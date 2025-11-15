@@ -1,4 +1,5 @@
 Jenkinsfile
 README.md
 kube-bench-job.yaml
+*.json
 *.md
