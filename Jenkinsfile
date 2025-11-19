@@ -213,6 +213,9 @@ pipeline{
             post {
                 always {
                     publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
                         reportDir: 'grype-report',
                         reportFiles: 'grype-report.html',
                         reportName: 'Anchore Grype Report'
