@@ -309,7 +309,8 @@ pipeline{
         }
         stage('ScanCentral DAST Scan') {
             steps {
-we                echo "[INFO] Logging into SSC at ${SSC_URL}"
+                sh '''
+                        echo "[INFO] Logging into SSC at ${SSC_URL}"
                         fcli ssc session login \
                             --user=${SSC_USERNAME} \
                             --password=${SSC_PASSWORD} \
@@ -354,8 +355,7 @@ we                echo "[INFO] Logging into SSC at ${SSC_URL}"
 
                         echo "[INFO] Logging out from SSC"
                         fcli ssc session logout
-                    '''
-                }
+                '''
             }
         }
         stage('Upload Security Reports to S3') {
