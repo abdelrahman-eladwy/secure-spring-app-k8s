@@ -111,12 +111,12 @@ pipeline{
                         echo "Severe Components: ${severeCount}"
                         
                         // Fail if critical vulnerabilities found (threshold: 0)
-                        if (criticalCount > ${SONATYPE_QG_CRITICAL_THRESHOLD}) {
+                        if (criticalCount > env.SONATYPE_QG_CRITICAL_THRESHOLD.toInteger()) {
                             error("Sonatype Quality Gate FAILED: Found ${criticalCount} critical components (threshold: 0)")
                         }
                         
                         // Optional: Also fail on severe (adjust threshold as needed)
-                        if (severeCount > ${SONATYPE_QG_HIGH_THRESHOLD}) {
+                        if (severeCount > env.SONATYPE_QG_HIGH_THRESHOLD.toInteger()) {
                             error("Sonatype Quality Gate FAILED: Found ${severeCount} severe components (threshold: 10)")
                         }
                         
