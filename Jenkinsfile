@@ -384,7 +384,7 @@ pipeline{
 
                         # Collect Grype Reports
                         if [ -d grype-report ]; then
-                            cp grype-report/\* s3-artifacts/
+                            cp grype-report/* s3-artifacts/
                         fi
 
                         # Save KubeBench logs to file
